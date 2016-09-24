@@ -1,0 +1,33 @@
+body {
+  font-family: Arial;
+  color:#333;
+}
+.comment {
+  border-top:1px solid #ccc;
+  padding:10px;
+  box-sizing: border-box;
+}
+
+.highlight {
+  background-color: yellow
+}
+
+.segment {
+  
+}
+
+.commentBody {
+  font-size:16px;
+}
+
+.commentName {
+  font-size:14px;
+  color:#999;
+}
+.searchBar {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  box-sizing: border-box;
+  font-size: 24px;
+}
