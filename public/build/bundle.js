@@ -55,18 +55,56 @@
 	  var Immutable = __webpack_require__(194);
 	  var _ = __webpack_require__(195);
 
+	  function getAllIndexes(arr, val) {
+	    var indexes = [],
+	        i = -1;
+	    while ((i = arr.indexOf(val, i + 1)) != -1) {
+	      indexes.push(i);
+	    }
+	    return indexes;
+	  }
+
 	  var CommentRow = React.createClass({
 	    displayName: 'CommentRow',
 
 	    render: function render() {
-	      var body = highlightText(this.props.comment.body, this.props.filter);
-	      var email = highlightText(this.props.comment.email, this.props.filter);
+	      var body = this.props.comment.body; // highlightText(, this.props.filter);
+	      var email = "ayaniv@gmail.com";
+	      //let email = highlightText(this.props.comment.email, this.props.filter);
 
 	      function highlightText(source, filter) {
+
+	        // the function takes the string, and the filter
+	        // creates a hashmap with the filter as a key and an array of indexes as a value
+	        // the next time you enter that function, it checked if the filter contains any of the hashmap keys
+	        // in case there is it will go to the indexes in the key, adding them the delta if needed
+	        // then look in those indexes to find matches. using the sticky ES6 flag.
+
+	        if (!filter) {
+	          //highlightText.push(source); 
+	        } else {
+
+	            /*
+	            _.forEach(_.keysIn(filterKeys), function(key) {
+	              if (key.indexOf(filter))
+	            });
+	              //getAllIndexes(source, filter)
+	              var indexes = getAllIndexes(source, filter);
+	            filterKeys[filter] = indexes;
+	            */
+	          }
+	        return;
 	        var highlightText = [];
+
 	        if (!filter) {
 	          highlightText.push(source);
 	        } else {
+
+	          var list = new Array(source);
+	          var options = { pre: '<b>', post: '</b>' };
+	          highlightText = fuzzy.filter(filter, list, options);
+	          return React.render(highlightText[0].string);
+
 	          var regex = new RegExp(filter, 'gi');
 	          var segments = source.split(regex);
 	          var replacements = source.match(regex);
@@ -100,18 +138,57 @@
 	    }
 	  });
 
+	  var filterKeys = {};
+
 	  var CommentsTable = React.createClass({
 	    displayName: 'CommentsTable',
 
+
+	    statics: {
+	      filterObject: function filterObject() {
+
+	        var findIndexesForFilter = function findIndexesForFilter(collection, filter) {
+	          var indexes = [];
+	          _.forEach(collection, function (item, i) {
+	            if (item.body.indexOf(filter) > -1 || item.email.indexOf(filter) > -1) {
+	              indexes.push(i);
+	            }
+	          });
+	          return indexes;
+	        };
+
+	        this.getIndexesByFilter = function (collection, filter) {
+	          if (filter) {
+	            if (!filterKeys[filter]) {
+	              filterKeys[filter] = findIndexesForFilter(collection, filter);
+	            }
+	          } else {
+	            filter = '$$null';
+	            if (!filterKeys[filter]) {
+	              var a = _.range(0, collection.length);
+	              console.log(a);
+	              filterKeys[filter] = _.range(0, collection.length);
+	              console.log(filterKeys);
+	            }
+	          }
+
+	          return filterKeys[filter];
+	        };
+	        return this;
+	      }
+	    },
+
 	    render: function render() {
 	      var rows = [];
+	      if (this.props.comments) {
+	        var filterObject = CommentsTable.filterObject();
+	        var matchesIndexes = filterObject.getIndexesByFilter(this.props.comments, this.props.filterText);
+	        rows = _.map(matchesIndexes, function (index) {
+	          var comment = this.props.comments[index];
+	          return React.createElement(CommentRow, { comment: comment, key: comment.id, filter: this.props.filterText });
+	        }.bind(this));
+	      }
 
-	      this.props.comments.forEach(function (comment) {
-	        if (comment.body.toLowerCase().indexOf(this.props.filterText) === -1 && comment.email.toLowerCase().indexOf(this.props.filterText) === -1) {
-	          return;
-	        }
-	        rows.push(React.createElement(CommentRow, { comment: comment, key: comment.id, filter: this.props.filterText.toLowerCase() }));
-	      }.bind(this));
 	      return React.createElement(
 	        'div',
 	        null,
